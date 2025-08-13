@@ -38,7 +38,7 @@
 #include <hal/hal.h>
 #include <SPI.h>
 
-#define RADIO_POWER_PIN 5  // Pin para controlar el MOSFET
+#define RADIO_POWER_PIN 13  // Pin para controlar el MOSFET
 
 //
 // For normal use, we require that you edit the sketch to replace FILLMEIN
@@ -82,22 +82,13 @@ static osjob_t sendjob;
 // cycle limitations).
 const unsigned TX_INTERVAL = 60;
 
-// Pin mapping
-// Adapted for Feather M0 per p.10 of [feather]
-//const lmic_pinmap lmic_pins = {
-//    .nss = 7,                       // chip select on feather (rf95module) CS
-//    .rxtx = LMIC_UNUSED_PIN,
-//    .rst = 6,                       // reset pin
-//    .dio = {2, 3, LMIC_UNUSED_PIN}, // assumes external jumpers [feather_lora_jumper]
-//                                    // DIO1 is on JP1-1: is io1 - we connect to GPO6
-//                                    // DIO1 is on JP5-3: is D2 - we connect to GPO5
-//};
+// ATMEGA1284p pin maping
 
 const lmic_pinmap lmic_pins = {
-    .nss = 7,                       // chip select on feather (rf95module) CS
+    .nss = 15,                       // chip select on feather (rf95module) CS
     .rxtx = LMIC_UNUSED_PIN,
-    .rst = 6,                       // reset pin
-    .dio = {2, 3, LMIC_UNUSED_PIN}, // assumes external jumpers [feather_lora_jumper]
+    .rst = 14,                       // reset pin
+    .dio = {10, 3, LMIC_UNUSED_PIN}, // assumes external jumpers [feather_lora_jumper]
                                     // DIO1 is on JP1-1: is io1 - we connect to GPO6
                                     // DIO1 is on JP5-3: is D2 - we connect to GPO5
 };
@@ -193,6 +184,7 @@ void onEvent (ev_t ev) {
         */
         case EV_TXSTART:
             Serial.println(F("EV_TXSTART"));
+            encenderRadio();
             break;
         case EV_TXCANCELED:
             Serial.println(F("EV_TXCANCELED"));
@@ -216,9 +208,7 @@ void do_send(osjob_t* j){
     if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
-      
-        encenderRadio();  // Encender la radio antes de enviar
-        
+       
         // Prepare upstream data transmission at the next possible time.
         LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
         Serial.println(F("Packet queued"));
@@ -231,6 +221,7 @@ void setup() {
 
     pinMode(RADIO_POWER_PIN, OUTPUT);
     apagarRadio();  // Apagar radio al iniciar
+    encenderRadio();
   
 
 //    pinMode(13, OUTPUT);
